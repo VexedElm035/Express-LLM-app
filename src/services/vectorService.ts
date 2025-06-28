@@ -7,7 +7,6 @@ const client = new ChromaClient({
   ssl: false 
 });
 const collectionName = "chatbot_documents";
-
 let embedder: any;
 let collection: any;
 
