@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { generateLLMResponse } from '../services/llmService';
+import { generateLLMResponse, generateLLMResponseStream } from '../services/llmService';
 import { searchSimilar, hasDocuments } from '../services/vectorService';
 
 export const test = async (req: Request, res: Response, next: NextFunction) => {
@@ -19,31 +19,31 @@ export const chatHandler = async (req: Request, res: Response, next: NextFunctio
     // Verificar si hay documentos en la base vectorial antes de buscar
     const hasVectorData = await hasDocuments();
     
-    let finalResponse: string;
-
     if (hasVectorData) {
       // Si hay documentos, buscar información relevante
       const docResponse = await searchSimilar(content);
       
       if (docResponse !== "No se encontró información relevante.") {
         // Se encontró información relevante en la base vectorial
-        finalResponse = docResponse;
+        // Enviar respuesta directa (no streaming para datos vectoriales)
+        res.status(200).json({
+          response: {
+            content: docResponse.trim(),
+            role: 'assistant',
+          }
+        });
+        return;
       } else {
-        // No se encontró información relevante, usar LLM
-        finalResponse = await generateLLMResponse(content);
+        // No se encontró información relevante, usar LLM con streaming
+        await generateLLMResponseStream(content, res);
+        return;
       }
     } else {
-      // No hay documentos en la base vectorial, usar directamente el LLM
+      // No hay documentos en la base vectorial, usar directamente el LLM con streaming
       console.log("Base de datos vectorial vacía, usando solo LLM");
-      finalResponse = await generateLLMResponse(content);
+      await generateLLMResponseStream(content, res);
+      return;
     }
-
-    res.status(200).json({
-      response: {
-        content: finalResponse.trim(),
-        role: 'assistant',
-      }
-    });
   } catch (error) {
     console.error('Error en chatHandler:', error);
     
@@ -60,6 +60,65 @@ export const chatHandler = async (req: Request, res: Response, next: NextFunctio
       });
     } catch (fallbackError) {
       next(fallbackError);
+    }
+  }
+};
+
+// Nuevo endpoint específico para streaming
+export const chatStreamHandler = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { content } = req.body;
+
+    // Verificar si hay documentos en la base vectorial antes de buscar
+    const hasVectorData = await hasDocuments();
+    
+    if (hasVectorData) {
+      // Si hay documentos, buscar información relevante
+      const docResponse = await searchSimilar(content);
+      
+      if (docResponse !== "No se encontró información relevante.") {
+        // Se encontró información relevante en la base vectorial
+        // Simular streaming para mantener consistencia en la interfaz
+        res.writeHead(200, {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Cache-Control'
+        });
+
+        // Enviar la respuesta completa de una vez
+        res.write(`data: ${JSON.stringify({
+          content: docResponse.trim(),
+          done: true,
+          fullResponse: docResponse.trim()
+        })}\n\n`);
+        res.end();
+        return;
+      }
+    }
+
+    // Si no hay información vectorial relevante, usar streaming del LLM
+    console.log("Usando LLM con streaming");
+    await generateLLMResponseStream(content, res);
+    
+  } catch (error) {
+    console.error('Error en chatStreamHandler:', error);
+    
+    if (!res.headersSent) {
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+      });
+      
+      res.write(`data: ${JSON.stringify({
+        error: 'Ocurrió un error al generar la respuesta.',
+        done: true
+      })}\n\n`);
+      res.end();
     }
   }
 };
