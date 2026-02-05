@@ -8,7 +8,7 @@ import { z } from 'zod';
 /**
  * Chat message schema
  */
-export const ChatMessageSchema = z.object({
+const ChatMessageSchema = z.object({
   role: z.enum(['system', 'user', 'assistant']),
   content: z.string(),
 });
@@ -23,15 +23,13 @@ export const ChatCompletionRequestSchema = z.object({
   messages: z.array(ChatMessageSchema).min(1, 'At least one message is required'),
   temperature: z.number().min(0).max(2).optional(),
   max_tokens: z.number().positive().optional(),
-  stream: z.boolean().optional().default(false),
+  stream: z.boolean().optional().default(true),
 });
-
-export type ChatCompletionRequest = z.infer<typeof ChatCompletionRequestSchema>;
 
 /**
  * Chat completion response schema
  */
-export const ChatCompletionResponseSchema = z.object({
+const ChatCompletionResponseSchema = z.object({
   id: z.string(),
   object: z.literal('chat.completion'),
   created: z.number(),
@@ -55,15 +53,16 @@ export type ChatCompletionResponse = z.infer<typeof ChatCompletionResponseSchema
 /**
  * Health check response schema
  */
-export const HealthResponseSchema = z.object({
+const HealthResponseSchema = z.object({
   status: z.enum(['healthy', 'unhealthy', 'degraded']),
   version: z.string(),
   timestamp: z.string(),
   services: z.record(
+    z.string(),
     z.object({
       status: z.enum(['up', 'down', 'unknown']),
       message: z.string().optional(),
-    })
+    }),
   ),
 });
 
@@ -72,7 +71,7 @@ export type HealthResponse = z.infer<typeof HealthResponseSchema>;
 /**
  * Models list response schema
  */
-export const ModelsListResponseSchema = z.object({
+const ModelsListResponseSchema = z.object({
   object: z.literal('list'),
   data: z.array(
     z.object({
@@ -89,7 +88,7 @@ export type ModelsListResponse = z.infer<typeof ModelsListResponseSchema>;
 /**
  * Error response schema
  */
-export const ErrorResponseSchema = z.object({
+const ErrorResponseSchema = z.object({
   error: z.string(),
   detail: z.string().optional(),
   code: z.string().optional(),

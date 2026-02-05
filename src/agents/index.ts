@@ -1,2 +1,2 @@
 export * from './ollama-client';
-export * from './ollama-agent';
+export * from './llm-agent';

@@ -40,7 +40,7 @@ export async function generarRespuesta(
   const cliente = obtenerollamaClient();
 
   const model = options?.model || appConfig.llm.model;
-  const temperatura = options?.temperatura ?? appConfig.llm.temperatura;
+  const temperatura = options?.temperatura ?? appConfig.llm.temperature;
   const maxTokens = options?.maxTokens || appConfig.llm.maxTokens;
 
   console.info('Generating response with Ollama', {
@@ -88,7 +88,7 @@ export async function completarChat(
   const cliente = obtenerollamaClient();
 
   const model = options?.model || appConfig.llm.model;
-  const temperatura = options?.temperatura ?? appConfig.llm.temperatura;
+  const temperatura = options?.temperatura ?? appConfig.llm.temperature;
 
   console.info('Generating chat response with Ollama', {
     model,
@@ -138,7 +138,7 @@ export async function* completarChatConStreaming(
   const cliente = obtenerollamaClient();
 
   const model = options?.model || appConfig.llm.model;
-  const temperatura = options?.temperatura ?? appConfig.llm.temperatura;
+  const temperatura = options?.temperatura ?? appConfig.llm.temperature;
     
   console.info('Generando respuesta de chat con streaming', {
     model,

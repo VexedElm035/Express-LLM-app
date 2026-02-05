@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { appConfig, obtenerMarcaTiempo } from '../core';
+import { appConfig } from '../core';
 import { verificarSaludOllama } from '../agents';
-import { HealthResponse, ModelsListResponse } from '../models';
+import { HealthResponse, ModelsListResponse } from '../validators';
 
 export const systemRoutes = Router();
 
@@ -20,7 +20,7 @@ systemRoutes.get('/health', async (_peticion: Request, respuesta: Response) => {
     const respuestaSalud: HealthResponse = {
       status: saludOllama.disponible ? 'healthy' : 'degraded',
       version: appConfig.app.version,
-      timestamp: obtenerMarcaTiempo(),
+      timestamp: new Date().toISOString(),
       services: {
         ollama: {
           status: saludOllama.disponible ? 'up' : 'down',
@@ -37,7 +37,7 @@ systemRoutes.get('/health', async (_peticion: Request, respuesta: Response) => {
     respuesta.status(500).json({
       status: 'unhealthy',
       version: appConfig.app.version,
-      timestamp: obtenerMarcaTiempo(),
+      timestamp: new Date().toISOString(),
       services: {},
     });
   }
@@ -45,22 +45,22 @@ systemRoutes.get('/health', async (_peticion: Request, respuesta: Response) => {
 
 systemRoutes.get('/', (_peticion: Request, respuesta: Response) => {
   respuesta.json({
-    nombre: appConfig.app.nombre,
+    nombre: appConfig.app.name,
     version: appConfig.app.version,
-    estado: 'en línea',
+    status: 'online',
     
     endpoints: {
-      salud: {
-        metodo: 'GET',
-        ruta: '/health',
+      health: {
+        method: 'GET',
+        path: '/health',
       },
       models: {
-        metodo: 'GET',
-        ruta: '/v1/models',
+        method: 'GET',
+        path: '/v1/models',
       },
       chat: {
-        metodo: 'POST',
-        ruta: '/v1/chat/completions',
+        method: 'POST',
+        path: '/v1/chat/completions',
       },
     },
   });

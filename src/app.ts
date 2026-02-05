@@ -1,9 +1,11 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { appConfig } from './core';
-import { systemRoutes, chatRoutes } from './api';
+import { systemRoutes, chatRoutes } from './routes';
+import { initializeProviders } from './llm/registry';
 
 export function initApp(): Application {
+  
   const app = express();
 
   app.use(express.json());
@@ -11,43 +13,43 @@ export function initApp(): Application {
 
   app.use(
     cors({
-      origin: appConfig.api.origenCors,
+      origin: appConfig.api.corsOrigins,
       credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      methods: ['GET', 'POST', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
     })
   );
 
   // Middleware para registrar todas las peticiones
-  app.use((peticion: Request, _respuesta: Response, siguiente: NextFunction) => {
-    console.info('peticion recibida', {
-      metodo: peticion.method,
-      ruta: peticion.path,
-      consulta: peticion.query,
-      ip: peticion.ip,
+  app.use((request: Request, _response: Response, _next: NextFunction) => {
+    console.info('request received', {
+      method: request.method,
+      path: request.path,
+      query: request.query,
+      ip: request.ip,
     });
-    siguiente();
+    _next();
   });
 
   // Rutas
   app.use('/', systemRoutes);
   app.use('/v1', chatRoutes);
 
-  // Manejador de errores 404
-  app.use((_peticion: Request, respuesta: Response) => {
-    respuesta.status(404).json({
-      error: 'No encontrado',
-      detalle: 'Ruta no existente',
+  // 404 error handler
+  app.use((_request: Request, response: Response) => {
+    response.status(404).json({
+      error: 'Not found',
+      detail: 'Non-existent route',
     });
   });
 
-  // Manejador global de errores
-  app.use((error: Error, _peticion: Request, respuesta: Response, _siguiente: NextFunction) => {
-    console.error('Error no manejado', { mensaje: error.message, pila: error.stack });
+  // Global error handler
+  app.use((error: Error, _request: Request, response: Response, _next: NextFunction) => {
+    console.error('Unhandled error', { message: error.message, stack: error.stack });
 
-    respuesta.status(500).json({
-      error: 'Error interno del servidor',
-      detalle: appConfig.app.debug ? error.message : 'Ocurrió un error inesperado',
+    response.status(500).json({
+      error: 'Internal server error',
+      detail: appConfig.logging.logLevel === 'debug' ? error.message : 'An unexpected error occurred',
     });
   });
 
@@ -56,25 +58,38 @@ export function initApp(): Application {
 
 export async function initServer(): Promise<void> {
   try {    
-    console.log(`LLM configured: ${appConfig.llm.model}`);
-    console.log(`Ollama url: ${appConfig.llm.urlBase}\n`);
-
+    
     const app = initApp();
+    
+    await initializeProviders({
+      ollama: {
+        name: 'ollama',
+        apiUrl: appConfig.ollama.urlBase,
+        model: appConfig.ollama.model,
+        temperature: appConfig.ollama.temperature,
+      },
+      openai: {
+        name: 'openai',
+        apiKey: appConfig.openai.apiKey,
+        model: appConfig.openai.model,
+        temperature: appConfig.openai.temperature,
+      },
+    });
 
-    app.listen(appConfig.api.puerto, appConfig.api.host, () => {
-      const host = appConfig.api.host === '0.0.0.0' ? 'localhost' : appConfig.api.host;
-      const url = `http://${host}:${appConfig.api.puerto}`;
-
+    app.listen(appConfig.api.port, appConfig.api.host, () => {
+      const host = appConfig.api.host;
+      const url = `http://${host}:${appConfig.api.port}`;
       console.info(`Server listening in ${url}`);
       console.log('\nAvailable endpoints:');
       console.log(`${url}/`);
       console.log(`${url}/health`);
       console.log(`${url}/v1/models`);
       console.log(`${url}/v1/chat/completions\n`);
+
     });
   } catch (error) {
-    const mensajeError = error instanceof Error ? error.message : String(error);
-    console.error('Fallo al iniciar la aplicación', { error: mensajeError });;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Failed to start the application', { error: errorMessage });
     process.exit(1);
   }
 }

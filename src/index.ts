@@ -1,11 +1,12 @@
 import { initServer } from './app';
+import { appConfig } from './core/';
 
-process.on('unhandledRejection', (razon, promesa) => {
-  console.error('unhandledRejection...', { razon, promesa });
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('unhandledRejection...', { reason, promise });
 });
 
 process.on('uncaughtException', (error) => {
-  console.error('uncaughtException...', { mensaje: error.message, pila: error.stack });
+  console.error('uncaughtException...', { message: error.message, stack: error.stack });
   process.exit(1);
 });
 
@@ -20,7 +21,7 @@ process.on('SIGINT', () => {
 });
 
 initServer().catch((error) => {
-  const mensajeError = error instanceof Error ? error.message : String(error);
-  console.error('Fallo al iniciar la aplicación', { error: mensajeError });
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  console.error('Failed to start the application', { error: errorMessage });
   process.exit(1);
 });
