@@ -15,13 +15,6 @@ npm run dev
 npm run build
 npm start
 
-# Verificacion y correciones
-npm run type-check
-npm run lint
-npm run lint:fix
-npm run format
-npm run format:check
-
 # Listar modelos:
 GET http://localhost:8000/v1/models
 
@@ -33,7 +26,7 @@ Content-Type: application/json
   "messages": [
     {
       "role": "user",
-      "content": "que es ecosur?"
+      "content": "que es amd?"
     }
   ],
   "temperature": 0.7,
@@ -52,7 +45,7 @@ Respuesta sin stream:
       "index": 0,
       "message": {
         "role": "assistant",
-        "content": "Ecosur es..."
+        "content": "AMD es..."
       },
       "finish_reason": "stop"
     }

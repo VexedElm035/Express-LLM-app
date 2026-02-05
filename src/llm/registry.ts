@@ -1,6 +1,6 @@
 import { LLMProvider, ModelInfo, ProviderConfig } from './types';
 import { OllamaProvider } from './ollama/ollama-provider';
-import { OpenAIProvider } from './ollama/openai-provider';
+import { OpenAIProvider } from './openai/openai-provider';
 
 export class LLMProviderRegistry{
   private providers: Map<string, LLMProvider> = new Map();
