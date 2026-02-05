@@ -1,6 +1,7 @@
 import { LLMProvider, ModelInfo, ProviderConfig } from './types';
 import { OllamaProvider } from './ollama/ollama-provider';
 import { OpenAIProvider } from './openai/openai-provider';
+import { GoogleProvider } from './google/google-provider';
 
 export class LLMProviderRegistry{
   private providers: Map<string, LLMProvider> = new Map();
@@ -56,19 +57,22 @@ export async function initializeProviders(config:
     if(config.openai && config.openai.apiKey){ 
       try{
           const openAIProvider = new OpenAIProvider(config.openai);
-          const isOpenAIAvailable = await openAIProvider.isAvailable();
-          console.log(isOpenAIAvailable)
-          if(isOpenAIAvailable){
-              providerRegistry.register(openAIProvider);
-              console.info(`OpenAIProvider registrado con el modelo: ${config.openai.model}`);
-          } else {
-              console.warn('OpenAIProvider no está disponible. Verifique la configuración y la clave API de OpenAI.');
-          }
+          providerRegistry.register(openAIProvider);
+          console.info(`OpenAIProvider registrado con el modelo: ${config.openai.model}`);
       } catch (error) {
           console.error('OpenAIProvider initialization error:', error);
           return;
       }
     }
+
+    if(config.google && config.google.apiKey){ 
+      try{
+          const googleProvider = new GoogleProvider(config.google);
+          providerRegistry.register(googleProvider);
+          console.info(`GoogleProvider registrado con el modelo: ${config.google.model}`);
+      } catch (error) {
+          console.error('GoogleProvider initialization error:', error);
+          return;
+      }
+    }
 }
-
-

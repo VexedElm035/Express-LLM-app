@@ -74,6 +74,12 @@ export async function initServer(): Promise<void> {
         model: appConfig.openai.model,
         temperature: appConfig.openai.temperature,
       },
+      google: {
+        name: 'google',
+        apiKey: appConfig.google.apiKey,
+        model: appConfig.google.model,
+        temperature: appConfig.google.temperature,
+      },
     });
 
     app.listen(appConfig.api.port, appConfig.api.host, () => {

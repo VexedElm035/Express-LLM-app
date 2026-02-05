@@ -27,6 +27,11 @@ const esquemaenv_variables = z.object({
   OPENAI_TEMPERATURE: z.string().transform(Number).default('0.7'),
   OPENAI_MAX_TOKENS: z.string().transform(Number).default('2048'),
 
+  GOOGLE_API_KEY: z.string().optional(),
+  GOOGLE_MODEL: z.string().default('gemini-2.5-flash-lite'),
+  GOOGLE_TEMPERATURE: z.string().transform(Number).default('0.3'),
+  GOOGLE_MAX_TOKENS: z.string().transform(Number).default('4096'),
+
   // Prompt
   SYSTEM_PROMPT: z.string().default('Eres un asistente útil y amigable. Responde de manera clara y concisa.'),
 });
@@ -66,6 +71,13 @@ export const appConfig = {
     model: env_variables.OPENAI_MODEL,
     temperature: env_variables.OPENAI_TEMPERATURE,
     maxTokens: env_variables.OPENAI_MAX_TOKENS,
+  },
+
+  google: {
+    apiKey: env_variables.GOOGLE_API_KEY,
+    model: env_variables.GOOGLE_MODEL,
+    temperature: env_variables.GOOGLE_TEMPERATURE,
+    maxTokens: env_variables.GOOGLE_MAX_TOKENS,
   },
 
   llm: {
