@@ -29,6 +29,10 @@ export class OpenAIProvider implements LLMProvider{
   getConfig(): ProviderConfig {
     return this.config;
   }
+
+  getClient(): ChatOpenAI {
+    return this.client;
+  }
   
   getModels(): ModelInfo[] {
     return [{

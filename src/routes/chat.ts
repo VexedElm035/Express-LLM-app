@@ -104,19 +104,19 @@ chatRoutes.post('/chat/completions', async (request: Request, response: Response
           model: requestValidated.model,
           choices: [
             {
-              index: 0,
+              index: result.response.response_metadata.index,
               message: {
                 role: 'assistant',
                 content: result.response.content.toString(),
-                // content: result.response,
+                //content: result.response
               },
-              finish_reason: 'stop',
+              finish_reason: result.response.response_metadata.finishReason,
             },
           ],
           usage: {
-            // prompt_tokens: 0,
-            // completion_tokens: 0,
-            // total_tokens: 0,
+            //prompt_tokens: 0,
+            //completion_tokens: 0,
+            //total_tokens: 0,
             prompt_tokens: result.response.usage_metadata.input_tokens,
             completion_tokens: result.response.usage_metadata.output_tokens,
             total_tokens: result.response.usage_metadata.total_tokens,

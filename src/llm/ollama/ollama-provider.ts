@@ -25,6 +25,10 @@ export class OllamaProvider implements LLMProvider{
   getConfig(): ProviderConfig {
     return this.config;
   }
+
+  getClient(): ChatOllama {
+    return this.client;
+  }
   
   getModels(): ModelInfo[] {
     return [{

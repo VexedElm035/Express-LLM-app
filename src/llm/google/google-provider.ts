@@ -26,6 +26,10 @@ export class GoogleProvider implements LLMProvider{
     return this.config;
   }
   
+  getClient(): ChatGoogleGenerativeAI {
+    return this.client;
+  }
+
   getModels(): ModelInfo[] {
     return [{
       id: this.config.model,

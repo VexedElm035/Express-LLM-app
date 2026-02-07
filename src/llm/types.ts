@@ -1,4 +1,5 @@
 import { BaseMessage } from '@langchain/core/messages';
+import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 
 export interface ProviderConfig{
   name: string;
@@ -18,6 +19,7 @@ export interface LLMProvider{
   getName(): string;
   getConfig(): ProviderConfig;
   getModels(): ModelInfo[];
+  getClient(): BaseChatModel;
   
   invoke(messages: BaseMessage[]): Promise<string>;
 

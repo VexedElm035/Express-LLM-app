@@ -1,6 +1,7 @@
-import { BaseMessage, HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages';
+import { BaseMessage, HumanMessage, AIMessage, SystemMessage, ContentBlock } from '@langchain/core/messages';
 import { appConfig } from '../core';
 import { LLMProvider } from '../llm/types';
+import { createAgent } from 'langchain';
 
 export interface ChatMessage{
   role: 'system' | 'user' | 'assistant';
@@ -9,7 +10,7 @@ export interface ChatMessage{
 
 export interface AgentResult{
   success: boolean;
-  response: string;
+  response: BaseMessage | string | (ContentBlock)[];
   error?: string;
 }
 
@@ -42,25 +43,27 @@ export class LLMAgent{
     try{
       const mensajes: ChatMessage[] = [
         {
-          role: 'system',
-          content: appConfig.system.promptInicial,
-        },
+          role: 'user',
+          content: userQuery,
+        }
       ];
-
-      if (conversationHistory && conversationHistory.length > 0) {
-        mensajes.push(...conversationHistory);
-      }
-
-      mensajes.push({
-        role: 'user',
-        content: userQuery,
+    
+      const baseMessages = this.toBaseMessages(mensajes);
+      const agent = createAgent({
+        model: this.llmProvider.getClient(),
+        tools: [],
+        // checkpointer: memory,
+        systemPrompt: appConfig.system.promptInicial,
       });
 
-      const baseMessages = this.toBaseMessages(mensajes);
-      const response = await this.llmProvider.invoke(baseMessages);
+      const result = await agent.invoke({messages: baseMessages}, { configurable: { thread_id: "1" } });
+
+      const lastMessage = result.messages[result.messages.length - 1];
+      const responseText = lastMessage;
+
       return {
         success: true,
-        response,
+        response: responseText,
       };
     } catch (error) {
       const mensajeError = error instanceof Error ? error.message : String(error);
